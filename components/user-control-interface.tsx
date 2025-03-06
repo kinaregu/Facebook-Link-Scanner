@@ -21,6 +21,7 @@ export function UserControlInterface() {
   >([])
   const [loading, setLoading] = useState(false)
   const [feedback, setFeedback] = useState<Record<string, "positive" | "negative">>({})
+  const [manualUrl, setManualUrl] = useState("")
 
   // Step 3: Display results to the user
   const displayResults = (results: { url: string; score: number; details: string }) => {
@@ -70,6 +71,28 @@ export function UserControlInterface() {
     }
   }
 
+  // Scan a manually entered link
+  const scanManualLink = async () => {
+    if (!manualUrl.trim()) return
+
+    setLoading(true)
+    try {
+      // Process the manually entered link
+      const result = await processLinks(manualUrl)
+      displayResults({
+        url: manualUrl,
+        score: result.threatAssessmentScore,
+        details: result.details,
+      })
+
+      // Clear the input field after scanning
+      setManualUrl("")
+    } catch (error) {
+      console.error("Error scanning manual link:", error)
+      setLoading(false)
+    }
+  }
+
   const getThreatLevel = (score: number) => {
     if (score < 30) return { level: "Low", color: "bg-green-100 text-green-800" }
     if (score < 70) return { level: "Medium", color: "bg-yellow-100 text-yellow-800" }
@@ -90,18 +113,46 @@ export function UserControlInterface() {
           </TabsList>
 
           <TabsContent value="scan">
-            <div className="space-y-4">
-              <Alert>
-                <Shield className="h-4 w-4" />
-                <AlertTitle>Facebook Integration</AlertTitle>
-                <AlertDescription>
-                  Click the button below to scan links from your Facebook feed for potential threats.
-                </AlertDescription>
-              </Alert>
+            <div className="space-y-6">
+              <div className="space-y-4">
+                <h3 className="text-lg font-medium">Scan a Specific Link</h3>
+                <div className="flex gap-2">
+                  <input
+                    type="url"
+                    value={manualUrl}
+                    onChange={(e) => setManualUrl(e.target.value)}
+                    placeholder="https://example.com"
+                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                  />
+                  <Button onClick={scanManualLink} disabled={loading || !manualUrl.trim()}>
+                    Scan
+                  </Button>
+                </div>
+              </div>
 
-              <Button onClick={scanFacebookLinks} disabled={loading} className="w-full">
-                {loading ? "Scanning..." : "Scan Facebook Links"}
-              </Button>
+              <div className="relative">
+                <div className="absolute inset-0 flex items-center">
+                  <span className="w-full border-t" />
+                </div>
+                <div className="relative flex justify-center text-xs uppercase">
+                  <span className="bg-background px-2 text-muted-foreground">Or</span>
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                <h3 className="text-lg font-medium">Scan Facebook Links</h3>
+                <Alert>
+                  <Shield className="h-4 w-4" />
+                  <AlertTitle>Facebook Integration</AlertTitle>
+                  <AlertDescription>
+                    Click the button below to scan links from your Facebook feed for potential threats.
+                  </AlertDescription>
+                </Alert>
+
+                <Button onClick={scanFacebookLinks} disabled={loading} className="w-full">
+                  {loading ? "Scanning..." : "Scan Facebook Links"}
+                </Button>
+              </div>
             </div>
           </TabsContent>
 

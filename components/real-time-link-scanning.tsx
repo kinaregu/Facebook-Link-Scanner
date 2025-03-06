@@ -42,9 +42,27 @@ const threatDatabase: Record<
   },
 }
 
+// Validate if a string is a properly formatted URL
+function isValidUrl(urlString: string): boolean {
+  try {
+    const url = new URL(urlString)
+    return url.protocol === "http:" || url.protocol === "https:"
+  } catch {
+    return false
+  }
+}
+
 // Step 2: Process links and perform threat assessment
 export async function processLinks(url: string) {
   try {
+    // Validate URL format
+    if (!isValidUrl(url)) {
+      return {
+        threatAssessmentScore: 100,
+        details: "Invalid URL format. Please enter a valid URL starting with http:// or https://",
+      }
+    }
+
     // Simulate processing delay
     await new Promise((resolve) => setTimeout(resolve, 1000))
 
